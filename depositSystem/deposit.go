@@ -13,7 +13,6 @@ func (d *DepositSystem) Deposit(accountId string, amount int) error { // error i
 	targetAccount := &account.Account{}
 	for i := 0; i < len(d.AccountList); i++ {
 		if d.AccountList[i].Id == accountId {
-			fmt.Printf("address account 1 %p \n", &d.AccountList[i])
 			targetAccount = &d.AccountList[i]
 			break
 		}
@@ -22,7 +21,6 @@ func (d *DepositSystem) Deposit(accountId string, amount int) error { // error i
 		fmt.Println("Account Not Found")
 		return nil
 	}
-	fmt.Printf("address account 2 %p \n", targetAccount)
 	targetAccount.Balance += amount
 	fmt.Println(targetAccount.Balance)
 
@@ -54,15 +52,9 @@ func (d *DepositSystem) Transfer(from, to string, amount int) error {
 	for i, v := range d.AccountList {
 		if v.Id == from {
 			fromAccount = &d.AccountList[i]
-		}
-		if v.Id == to {
+		} else if v.Id == to {
 			toAccount = &d.AccountList[i]
 		}
-	}
-	if toAccount == fromAccount {
-		// err = "Same Account"
-		fmt.Println("Same Account")
-		return nil
 	}
 	if toAccount.Id == "" || fromAccount.Id == "" {
 		// err = "Account not found"
