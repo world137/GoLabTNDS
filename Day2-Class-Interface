@@ -1,0 +1,155 @@
+Class เป็นการกำหนดคุณสมบัติและพฤติกรรมต่างๆ เพื่อนำไปสร้าง Object
+จะประกอบไปด้วยสมาชิกสองอย่างคือ
+- Attributes คือตัวแปรใช้สำหรับเก็บข้อมูลต่างๆ เกี่ยวกับออบเจ็ค
+- Method จะเป็นการกำหนดฟังก์ชันการทำงานของ Object
+
+```m
+Class NameOfClass:
+  // Attributes
+  attr1
+  attr2
+  attr3
+
+  // Method
+  method1(parameters){
+    ...
+  }
+  method2(parameters){
+    ...
+  }
+```
+
+แต่ทีนี้ใน Go เนี่ยจะมีความแปลกในการ Implement Class 
+คือ ใน Go จะใช้ Struct ในการ implement class 
+
+แบบนี้
+
+```go
+type Rectangle struct {
+  width int // attribute
+  length int // attribute
+}
+```
+
+การ implement attribute จะเหมือนกับ struct ปกติเลย
+ทีนี้ส่วนของ Method จะอยู่ที่ไหน
+
+ใน Go จะสามารถประกาศ Method แบบนี้
+
+```go
+func (s Rectangle)Area()int{
+  return s.width * s.length
+}
+```
+
+สิ่งที่จะเห็นได้ก็คือ จะเหมือนการประกาศ Function เลย แต่ว่ามีความแตกต่างกันตรง (s Square) สิ่งนี้เรียกว่า "receiver"
+
+โดยที่ receiver นี้ เราจะต้องใส่ type ของ struct ที่เราต้องการ implement method นี้ให้เข้าไป
+ถึงตรงนี้ก็จะเห็นแล้วว่ามันเหมือนกับ Class ที่เรารู้จักเลย มี field มี method
+
+ทีนี้เราลองมาเรียก Class กัน
+
+```go
+func main(){
+	rectangle := rectangle.Rectangle{
+		Width:  10.0,
+		Length: 20.5,
+	}
+
+	area := rectangle.Area()
+	fmt.Println(area)
+}
+```
+
+หลังจากนั้นก็จะบอกน้องว่า ถ้าใครสังเกตุดีๆ จะเห็นได้ว่าจริงๆแล้ว   การเปลี่ยนชื่อสัตว์เลี้ยงของเราเนี่ย มันสามารถเปลี่ยนได้ด้วยการทำแบบนี้ได้เลย
+
+```go
+func main(){
+	goat := goat.Goat{
+		Name:  "Whiskers", Baa-nana
+	}
+
+  goat.Name = "Baa-nana"
+  fmt.Println(goat.Name)
+}
+```
+
+ส่วนต่อไปที่จะสอนก็คือส่วนนึงของ OOP สิ่งที่เรียกว่า Encapsulation
+หมายถึงการห่อ attribute หรือ method เอาไว้เพื่อไม่ให้ข้างนอกสามารถเข้าถึงข้อมูลได้ เพื่อป้องกันการเปลี่ยนแปลงคุณสมบัติของ object 
+
+ทีนี้หลังจากที่เรา encap แล้ว สิ่งที่เกิดขึ้นคือเราจะไม่สามารถ เรียก init class นี้ได้ด้วย struct แล้ว
+สิ่งที่เราต้องทำก็คือจะต้องทำการสร้าง function ขึ้นมา init class ของเรา
+
+```go
+package goat
+
+import "fmt"
+
+type goat struct {
+	name string // attribute
+}
+
+// Efficient Memory Usage
+func NewGoat(name string) *goat {
+	return &goat{name}
+}
+
+func (g goat) MakeSound() {
+	fmt.Println("Sound...Baaaa")
+}
+
+func (g *goat) ChangeName(val string) {
+	g.name = val
+}
+
+func (g *goat) ToString() {
+	fmt.Printf("Name: %s", g.name)
+}
+
+```
+
+---------------------------------------------------------------------------------------------
+
+ต่อไปจะเป็นเรื่อง Interface
+- Interface เป็นตัวกำหนด method signature ว่าอยากจะให้สิ่งๆนั้นมี"ความสามารถ"ในการทำอะไรบ้าง โดย interface จะมีแค่ method เท่านั้น ตัวมันเองจะเอาไปใช้งานตรงๆไม่ได้ จะต้องมีคนมา implement มันไปใช้อีกทีนึง 
+
+```c
+Interface NameOfInterface: 
+  //
+  method1(parameters):
+
+Class NameOfClass implements NameOfInterface:
+  // Attributes (or properties)
+  method1(parameters) { <-- same structure as above
+    // ...logic
+  }
+```
+
+แต่ว่าใน Go เนี่ย จะไม่มี keyword ที่ชื่อ implement เหมือนกับภาษาอื่นๆ ใน Go จะมีการ implement interface ที่ค่อนข้างแปลก
+
+โดยปกติแล้วเนี่ยการที่เราจะ implement Class เข้ากับ interface ได้ Class นั้นๆจะต้องมีพฤติกรรมที่เหมือนกับ interface อยู่ ซึ่งก็คือ มี method ที่เหมือนกันนั่นเอง 
+
+โดยใน Golang เนี่ยมันจะอัตโนมัติ implement interface ให้เอง เมื่อ method ใน struct ที่เรามี ตรงกับ interface หมายความว่าเราสามารถนำมาใช้งานได้เลย
+
+```go
+var petInterface pet.IPet 
+petInterface = pet.NewGoat("Whiskers")
+petInterface.Walk(4)
+petInterface.MakeSound()
+```
+
+ทีนี้ก็จะมีคำถามว่า อ่าว แล้วจะมีไปเพื่ออะไร ในเมื่อ class ปกติที่เราประกาศมาก็สามารถเรียก function ได้เหมือนกัน แถม interface เอามาใช้ตรงๆก็ไม่ได้ต้องประกาศให้เท่ากับตัวแปรอะไรอีกกว่าจะนำมาใช้งานได้ ?? 
+
+โดยส่วนมากที่ใช้ interface จะนำมาใช้งานในเรื่องของ Polymorphism คือการที่ออบเจ็คสามารถมีได้หลายรูปแบบ
+
+```go
+var petInterface pet.IPet 
+// petInterface = pet.NewCat("Kitty")
+petInterface = pet.NewGoat("Whiskers")
+petInterface.Walk(4)
+petInterface.MakeSound()
+```
+
+จะมีอธิบายเสริมว่าตรงนี้จะเห็นได้ว่าเราสามารถเปลี่ยนเป็นสัตว์เลี้ยงของใครก็ได้เลย โดยที่โค้ดไม่เปลี่ยน รวมถึงเราสามารถเปลี่ยนตอน runtime ได้เลยด้วย ให้ behavior มันเปลี่ยนไปเป็นของสัตว์เลี้ยงอีกชนิดหนึ่ง
+
+ทีนี้จะเห็นได้ว่า interface เนี่ย มันทำให้โค้ดเรามีความยืนหยุ่นมากขึ้น ทำให้เราสามารถรู้ได้ว่าตรงนี้เราต้องการเรียกพฤติกรรมนี้ๆแน่ๆ ซึ่งคือ method นี้แน่ๆ
