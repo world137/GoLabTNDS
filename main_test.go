@@ -10,120 +10,120 @@ import (
 func TestDepositSystem_PrintAllAccountData(t *testing.T) {
 	tests := []struct {
 		name     string
-		testFunc func() []account.Account
-		want     []account.Account
+		testFunc func() map[string]account.Account
+		want     map[string]account.Account
 	}{
 		{
 			name:     "test1_create_account_and_deposit",
 			testFunc: testCreateAccountAndDeposit,
-			want: []account.Account{
-				{
-					Id:      "001",
-					Balance: 254,
+			want: map[string]account.Account{
+				"001": {
+					AccountId: "001",
+					Balance:   254,
 				},
 			},
 		},
 		{
 			name:     "test2_create_multiple_accounts_and_deposit_withdraw",
 			testFunc: testMultipleAccountsAndDepositWithdraw,
-			want: []account.Account{
-				{
-					Id:      "001",
-					Balance: 862,
+			want: map[string]account.Account{
+				"001": {
+					AccountId: "001",
+					Balance:   862,
 				},
-				{
-					Id:      "002",
-					Balance: 190,
+				"002": {
+					AccountId: "002",
+					Balance:   190,
 				},
-				{
-					Id:      "003",
-					Balance: 230,
+				"003": {
+					AccountId: "003",
+					Balance:   230,
 				},
-				{
-					Id:      "004",
-					Balance: 657,
+				"004": {
+					AccountId: "004",
+					Balance:   657,
 				},
-				{
-					Id:      "005",
-					Balance: 335,
+				"005": {
+					AccountId: "005",
+					Balance:   335,
 				},
 			},
 		},
 		{
 			name:     "test3_create_account_and_withdraw",
 			testFunc: testCreateAccountAndWithdraw,
-			want: []account.Account{
-				{
-					Id:      "001",
-					Balance: 50,
+			want: map[string]account.Account{
+				"001": {
+					AccountId: "001",
+					Balance:   50,
 				},
-				{
-					Id:      "002",
-					Balance: 78,
+				"002": {
+					AccountId: "002",
+					Balance:   78,
 				},
-				{
-					Id:      "003",
-					Balance: 78,
+				"003": {
+					AccountId: "003",
+					Balance:   78,
 				},
-				{
-					Id:      "004",
-					Balance: 0,
+				"004": {
+					AccountId: "004",
+					Balance:   0,
 				},
-				{
-					Id:      "005",
-					Balance: 0,
+				"005": {
+					AccountId: "005",
+					Balance:   0,
 				},
 			},
 		},
 		{
 			name:     "test4_create_accounts_and_transfer",
 			testFunc: testCreateAccountsAndTransfer,
-			want: []account.Account{
-				{
-					Id:      "001",
-					Balance: 384,
+			want: map[string]account.Account{
+				"001": {
+					AccountId: "001",
+					Balance:   384,
 				},
-				{
-					Id:      "002",
-					Balance: 814,
+				"002": {
+					AccountId: "002",
+					Balance:   814,
 				},
-				{
-					Id:      "003",
-					Balance: 196,
+				"003": {
+					AccountId: "003",
+					Balance:   196,
 				},
-				{
-					Id:      "004",
-					Balance: 755,
+				"004": {
+					AccountId: "004",
+					Balance:   755,
 				},
-				{
-					Id:      "005",
-					Balance: -82,
+				"005": {
+					AccountId: "005",
+					Balance:   -82,
 				},
 			},
 		},
 		{
 			name:     "test5_create_accounts_and_transfer_insufficient_funds",
 			testFunc: testTransferInsufficientFunds,
-			want: []account.Account{
-				{
-					Id:      "001",
-					Balance: 10,
+			want: map[string]account.Account{
+				"001": {
+					AccountId: "001",
+					Balance:   10,
 				},
-				{
-					Id:      "002",
-					Balance: 800,
+				"002": {
+					AccountId: "002",
+					Balance:   800,
 				},
-				{
-					Id:      "003",
-					Balance: 300,
+				"003": {
+					AccountId: "003",
+					Balance:   300,
 				},
-				{
-					Id:      "004",
-					Balance: -100,
+				"004": {
+					AccountId: "004",
+					Balance:   -100,
 				},
-				{
-					Id:      "005",
-					Balance: -300,
+				"005": {
+					AccountId: "005",
+					Balance:   -300,
 				},
 			},
 		},
@@ -137,25 +137,23 @@ func TestDepositSystem_PrintAllAccountData(t *testing.T) {
 		})
 	}
 }
-func testCreateAccountAndDeposit() []account.Account {
+func testCreateAccountAndDeposit() map[string]account.Account {
 	d := &depositSystem.DepositSystem{
-		// AccountList: []account.Account{},
 		AccountMap: map[string]account.Account{},
 	}
-	d.CreateAccount("001")
+	d.CreateAccount(account.Account{AccountId: "001"})
 	d.Deposit("001", 254)
 	return d.PrintAllAccountData()
 }
-func testMultipleAccountsAndDepositWithdraw() []account.Account {
+func testMultipleAccountsAndDepositWithdraw() map[string]account.Account {
 	d := &depositSystem.DepositSystem{
-		// AccountList: []account.Account{},
 		AccountMap: map[string]account.Account{},
 	}
-	d.CreateAccount("001")
-	d.CreateAccount("002")
-	d.CreateAccount("003")
-	d.CreateAccount("004")
-	d.CreateAccount("005")
+	d.CreateAccount(account.Account{AccountId: "001"})
+	d.CreateAccount(account.Account{AccountId: "002"})
+	d.CreateAccount(account.Account{AccountId: "003"})
+	d.CreateAccount(account.Account{AccountId: "004"})
+	d.CreateAccount(account.Account{AccountId: "005"})
 	d.Deposit("001", 842)
 	d.Deposit("002", 220)
 	d.WithDraw("001", 400)
@@ -169,16 +167,15 @@ func testMultipleAccountsAndDepositWithdraw() []account.Account {
 	d.WithDraw("003", 200)
 	return d.PrintAllAccountData()
 }
-func testCreateAccountAndWithdraw() []account.Account {
+func testCreateAccountAndWithdraw() map[string]account.Account {
 	d := &depositSystem.DepositSystem{
-		// AccountList: []account.Account{},
 		AccountMap: map[string]account.Account{},
 	}
-	d.CreateAccount("001")
-	d.CreateAccount("002")
-	d.CreateAccount("003")
-	d.CreateAccount("004")
-	d.CreateAccount("005")
+	d.CreateAccount(account.Account{AccountId: "001"})
+	d.CreateAccount(account.Account{AccountId: "002"})
+	d.CreateAccount(account.Account{AccountId: "003"})
+	d.CreateAccount(account.Account{AccountId: "004"})
+	d.CreateAccount(account.Account{AccountId: "005"})
 	d.Deposit("001", 154)
 	d.Deposit("002", 78)
 	d.WithDraw("001", 100)
@@ -186,16 +183,15 @@ func testCreateAccountAndWithdraw() []account.Account {
 	d.WithDraw("001", 4)
 	return d.PrintAllAccountData()
 }
-func testCreateAccountsAndTransfer() []account.Account {
+func testCreateAccountsAndTransfer() map[string]account.Account {
 	d := &depositSystem.DepositSystem{
-		// AccountList: []account.Account{},
 		AccountMap: map[string]account.Account{},
 	}
-	d.CreateAccount("001")
-	d.CreateAccount("002")
-	d.CreateAccount("003")
-	d.CreateAccount("004")
-	d.CreateAccount("005")
+	d.CreateAccount(account.Account{AccountId: "001"})
+	d.CreateAccount(account.Account{AccountId: "002"})
+	d.CreateAccount(account.Account{AccountId: "003"})
+	d.CreateAccount(account.Account{AccountId: "004"})
+	d.CreateAccount(account.Account{AccountId: "005"})
 	d.Deposit("001", 376)
 	d.Deposit("002", 694)
 	d.Deposit("003", 219)
@@ -206,16 +202,15 @@ func testCreateAccountsAndTransfer() []account.Account {
 	d.Transfer("005", "001", 128)
 	return d.PrintAllAccountData()
 }
-func testTransferInsufficientFunds() []account.Account {
+func testTransferInsufficientFunds() map[string]account.Account {
 	d := &depositSystem.DepositSystem{
-		// AccountList: []account.Account{},
 		AccountMap: map[string]account.Account{},
 	}
-	d.CreateAccount("001")
-	d.CreateAccount("002")
-	d.CreateAccount("003")
-	d.CreateAccount("004")
-	d.CreateAccount("005")
+	d.CreateAccount(account.Account{AccountId: "001"})
+	d.CreateAccount(account.Account{AccountId: "002"})
+	d.CreateAccount(account.Account{AccountId: "003"})
+	d.CreateAccount(account.Account{AccountId: "004"})
+	d.CreateAccount(account.Account{AccountId: "005"})
 	d.Deposit("001", 210)
 	d.Transfer("001", "002", 300)
 	d.Deposit("003", 500)

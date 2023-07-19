@@ -57,13 +57,13 @@ func (d *DepositSystem) WithDraw(accountId string, amount int) error {
 	return nil
 }
 
-func (d *DepositSystem) PrintAllAccountData() []account.Account {
+func (d *DepositSystem) PrintAllAccountData() map[string]account.Account {
 	// return d.AccountList
-	returnArray := []account.Account{}
-	for _, v := range d.AccountMap {
-		returnArray = append(returnArray, v)
-	}
-	return returnArray
+	// returnArray := []account.Account{}
+	// for _, v := range d.AccountMap {
+	// 	returnArray = append(returnArray, v)
+	// }
+	return d.AccountMap
 }
 
 func (d *DepositSystem) Transfer(from, to string, amount int) error {
@@ -106,22 +106,22 @@ func (d *DepositSystem) Transfer(from, to string, amount int) error {
 	return nil
 }
 
-func (d *DepositSystem) CreateAccount(accountId string) *account.Account {
+func (d *DepositSystem) CreateAccount(acc account.Account) *account.Account {
 	// for _, v := range d.AccountList {
 	// 	if v.Id == accountId {
 	// 		panic("Error : Same Id")
 	// 	}
 	// }
-	_, ok := d.AccountMap[accountId]
+	_, ok := d.AccountMap[acc.AccountId]
 	if ok {
 		fmt.Println("same account")
 
 	}
 	newAccount := account.Account{
-		Id:      accountId,
-		Balance: 0,
+		AccountId: acc.AccountId,
+		Balance:   0,
 	}
 	// d.AccountList = append(d.AccountList, newAccount)
-	d.AccountMap[accountId] = newAccount
+	d.AccountMap[acc.AccountId] = newAccount
 	return &newAccount
 }
