@@ -139,7 +139,8 @@ func TestDepositSystem_PrintAllAccountData(t *testing.T) {
 }
 func testCreateAccountAndDeposit() []account.Account {
 	d := &depositSystem.DepositSystem{
-		AccountList: []account.Account{},
+		// AccountList: []account.Account{},
+		AccountMap: map[string]account.Account{},
 	}
 	d.CreateAccount("001")
 	d.Deposit("001", 254)
@@ -147,7 +148,8 @@ func testCreateAccountAndDeposit() []account.Account {
 }
 func testMultipleAccountsAndDepositWithdraw() []account.Account {
 	d := &depositSystem.DepositSystem{
-		AccountList: []account.Account{},
+		// AccountList: []account.Account{},
+		AccountMap: map[string]account.Account{},
 	}
 	d.CreateAccount("001")
 	d.CreateAccount("002")
@@ -169,7 +171,8 @@ func testMultipleAccountsAndDepositWithdraw() []account.Account {
 }
 func testCreateAccountAndWithdraw() []account.Account {
 	d := &depositSystem.DepositSystem{
-		AccountList: []account.Account{},
+		// AccountList: []account.Account{},
+		AccountMap: map[string]account.Account{},
 	}
 	d.CreateAccount("001")
 	d.CreateAccount("002")
@@ -185,7 +188,8 @@ func testCreateAccountAndWithdraw() []account.Account {
 }
 func testCreateAccountsAndTransfer() []account.Account {
 	d := &depositSystem.DepositSystem{
-		AccountList: []account.Account{},
+		// AccountList: []account.Account{},
+		AccountMap: map[string]account.Account{},
 	}
 	d.CreateAccount("001")
 	d.CreateAccount("002")
@@ -204,7 +208,8 @@ func testCreateAccountsAndTransfer() []account.Account {
 }
 func testTransferInsufficientFunds() []account.Account {
 	d := &depositSystem.DepositSystem{
-		AccountList: []account.Account{},
+		// AccountList: []account.Account{},
+		AccountMap: map[string]account.Account{},
 	}
 	d.CreateAccount("001")
 	d.CreateAccount("002")
