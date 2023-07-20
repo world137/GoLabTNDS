@@ -8,3 +8,12 @@ type Account struct {
 }
 
 // todo encapsulation
+func (a Account) GetId() string {
+	return a.AccountId
+}
+func (a *Account) AddBalance(amount int) {
+	a.Balance += amount
+}
+func (a *Account) ReduceBalance(amount int) {
+	a.Balance -= amount
+}

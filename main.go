@@ -17,12 +17,12 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	defer http.ListenAndServe(":3000", r) // while loop
-	storage := make(map[string]account.Account)
-
+	// storage := make(map[string]account.Account)
+	storage := storage.InitMapStorage()
 	initStandardRoute(r, storage)
 
 	depositSys := &depositSystem.DepositSystem{
-		AccountMap: storage,
+		Provider: storage,
 	}
 
 	initRoute(r, depositSys)
