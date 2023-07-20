@@ -9,27 +9,20 @@ package storage
 // 	_ "github.com/lib/pq"
 // )
 
-// func Test_psqlStorage_Read(t *testing.T) {
+// func Test_psqlStorage_ReadAll(t *testing.T) {
 // 	type fields struct {
 // 		db *sql.DB
-// 	}
-// 	type args struct {
-// 		accountId string
 // 	}
 // 	tests := []struct {
 // 		name    string
 // 		fields  fields
-// 		args    args
-// 		want    account.Account
+// 		want    []account.Account
 // 		wantErr bool
 // 	}{
 // 		// TODO: Add test cases.
 // 		{
-// 			name: "case1: defalut read",
-// 			args: args{
-// 				accountId: "002",
-// 			},
-// 			want:    account.Account{AccountId: "002", Name: "world2", Email: "world2@gmail.com", Balance: 200},
+// 			name:    "case1: defalut read",
+// 			want:    []account.Account{{AccountId: "002", Name: "world2", Email: "world2@gmail.com", Balance: 200}, {AccountId: "001", Name: "world", Email: "world@gmail.com", Balance: 100000}},
 // 			wantErr: false,
 // 		},
 // 	}
@@ -39,13 +32,13 @@ package storage
 // 			if err != nil {
 // 				t.Error("init psqlStorage error", err)
 // 			}
-// 			got, err := db.Read(tt.args.accountId)
+// 			got, err := db.ReadAll()
 // 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("psqlStorage.Read() error = %v, wantErr %v", err, tt.wantErr)
+// 				t.Errorf("psqlStorage.ReadAll() error = %v, wantErr %v", err, tt.wantErr)
 // 				return
 // 			}
 // 			if !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("psqlStorage.Read() = %v, want %v", got, tt.want)
+// 				t.Errorf("psqlStorage.ReadAll() = %v, want %v", got, tt.want)
 // 			}
 // 		})
 // 	}

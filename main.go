@@ -6,6 +6,7 @@ import (
 	"GoLab/depositSystem"
 	"GoLab/storage"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -14,15 +15,37 @@ import (
 )
 
 func main() {
+	var db storage.StroageProvider
+	var err error
+	// typeStorage := "map"
+	typeStorage := "postgres"
+	switch typeStorage {
+	case "map":
+		db = storage.InitMapStorage()
+	case "postgres":
+		db, err = storage.InitPsqlStorage()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	default:
+		fmt.Println("Invalid storage")
+		return
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	defer http.ListenAndServe(":3000", r) // while loop
 	// storage := make(map[string]account.Account)
-	storage := storage.InitMapStorage()
-	initStandardRoute(r, storage)
+	// storage, err := storage.InitPsqlStorage()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	initStandardRoute(r, db)
 
 	depositSys := &depositSystem.DepositSystem{
-		Provider: storage,
+		Provider: db,
 	}
 
 	initRoute(r, depositSys)
@@ -88,7 +111,9 @@ func initStandardRoute(r *chi.Mux, provider storage.StroageProvider) { // storag
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 		}
-		accFromRead, err := provider.Read(accountId)
+		// accFromRead, err := provider.Read(accountId)
+		accFromRead, _ := provider.Read(accountId)
+
 		if accFromRead.AccountId == "" {
 			err := provider.Create(account)
 			if err != nil {
@@ -127,11 +152,13 @@ func initStandardRoute(r *chi.Mux, provider storage.StroageProvider) { // storag
 
 		for _, account := range accounts {
 			// storage[account.AccountId] = account
-			accFromRead, err := provider.Read(account.AccountId)
-			if err != nil {
-				http.Error(w, err.Error(), 400)
-				return
-			}
+			// accFromRead, err := provider.Read(account.AccountId)
+			accFromRead, _ := provider.Read(account.AccountId)
+
+			// if err != nil {
+			// 	http.Error(w, err.Error(), 400)
+			// 	return
+			// }
 			if accFromRead.AccountId == "" {
 				err := provider.Create(account)
 				if err != nil {
@@ -154,6 +181,7 @@ func initStandardRoute(r *chi.Mux, provider storage.StroageProvider) { // storag
 	r.Patch("/accounts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		accountId := chi.URLParam(r, "id")
 		accFromRead, err := provider.Read(accountId)
+
 		if accFromRead.AccountId == "" {
 			http.Error(w, err.Error(), 400)
 			return
