@@ -1,0 +1,22 @@
+version: "3.7"
+networks:
+  shared-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet:  192.168.0.0/24
+services:
+  postgres:
+    restart: always
+    networks:
+      - shared-network
+    ipc: host
+    image: 'postgres:15.3-alpine'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=training
+    ports:
+      - "5433:5432"
+ 
