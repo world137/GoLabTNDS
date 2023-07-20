@@ -2,20 +2,73 @@ package main
 
 import (
 	"GoLab/account"
+	"GoLab/business"
 	"GoLab/depositSystem"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type StroageProvider interface {
+	Create(account.Account) error
+	Read(string) account.Account
+	ReadAll() []account.Account
+	Update(account.Account) error
+	Delete(account.Account) error
+}
+
+type mapStroage struct {
+	data map[string]account.Account
+}
+
+func (m *mapStroage) Create(account account.Account) error {
+	if account.AccountId == "" {
+		return fmt.Errorf("No account id")
+	}
+	m.data[account.AccountId] = account
+	return nil
+}
+func (m *mapStroage) Read(accountId string) account.Account {
+	if accountId == "" {
+	}
+	return m.data[accountId]
+}
+func (m *mapStroage) ReadAll() []account.Account {
+	var returnArray []account.Account
+	for _, v := range m.data {
+		returnArray = append(returnArray, v)
+	}
+
+	sort.SliceStable(returnArray, func(i, j int) bool {
+		return returnArray[i].AccountId < returnArray[j].AccountId //condition
+	})
+
+	return returnArray
+}
+func (m *mapStroage) Update(account account.Account) error {
+	if account.AccountId == "" {
+		return fmt.Errorf("No account id")
+	}
+	m.data[account.AccountId] = account
+	return nil
+}
+func (m *mapStroage) Delete(account account.Account) error {
+	if account.AccountId == "" {
+		return fmt.Errorf("No account id")
+	}
+	delete(m.data, account.AccountId)
+	return nil
+}
+
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	defer http.ListenAndServe(":3000", r)
+	defer http.ListenAndServe(":3000", r) // while loop
 	storage := make(map[string]account.Account)
 
 	initStandardRoute(r, storage)
@@ -28,54 +81,13 @@ func main() {
 
 }
 
-type deposit_withdraw struct {
-	AccountId string `json:"account_id"`
-	Amount    int    `json:"amount"`
-}
-type transfer struct {
-	FromAccountId string `json:"from_account_id"`
-	ToAccountId   string `json:"to_account_id"`
-	Amount        int    `json:"amount"`
-}
-
 func initRoute(r *chi.Mux, depositSys *depositSystem.DepositSystem) {
 	// { "account_id": "001", "amout":100 }
-	r.Post("/transactions/deposit", func(w http.ResponseWriter, r *http.Request) {
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-		}
-		bodyjson := &deposit_withdraw{}
-		err = json.Unmarshal(body, bodyjson)
-		depositSys.Deposit(bodyjson.AccountId, bodyjson.Amount)
-
-		w.Write([]byte(body))
-	})
+	r.Post("/transactions/deposit", business.DepositHandler(depositSys))
 	// { "account_id": "001", "amout":100 }
-	r.Post("/transactions/withdraw", func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-		}
-		bodyjson := &deposit_withdraw{}
-		err = json.Unmarshal(body, bodyjson)
-		depositSys.WithDraw(bodyjson.AccountId, bodyjson.Amount)
-
-		w.Write([]byte(body))
-	})
+	r.Post("/transactions/withdraw", business.WithDrawHandler(depositSys))
 	// { "from_account_id": "001", "to_account_id": "001", "amout":100 }
-	r.Post("/transactions/transfer", func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-		}
-		bodyjson := &transfer{}
-		err = json.Unmarshal(body, bodyjson)
-		depositSys.Transfer(bodyjson.FromAccountId, bodyjson.ToAccountId, bodyjson.Amount)
-
-		w.Write([]byte(body))
-	})
+	r.Post("/transactions/transfer", business.TransferHandler(depositSys))
 }
 
 func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {

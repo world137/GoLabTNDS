@@ -24,7 +24,7 @@ func (d *DepositSystem) Deposit(accountId string, amount int) error { // error i
 	// }
 	_, ok := d.AccountMap[accountId]
 	if !ok {
-		fmt.Println("Account Not Found")
+		return fmt.Errorf("Account Not Found")
 	} else {
 		targetAccount = d.AccountMap[accountId]
 	}
@@ -43,7 +43,7 @@ func (d *DepositSystem) WithDraw(accountId string, amount int) error {
 	// }
 	_, ok := d.AccountMap[accountId]
 	if !ok {
-		fmt.Println("Account Not Found")
+		return fmt.Errorf("Account Not Found")
 	} else {
 		targetAccount = d.AccountMap[accountId]
 	}
@@ -93,11 +93,11 @@ func (d *DepositSystem) Transfer(from, to string, amount int) error {
 
 	_, ok := d.AccountMap[from]
 	if !ok {
-		panic("account not found")
+		return fmt.Errorf("account not found")
 	}
 	_, ok2 := d.AccountMap[to]
 	if !ok2 {
-		panic("account not found")
+		return fmt.Errorf("account not found")
 	}
 
 	d.WithDraw(from, amount)
@@ -115,7 +115,6 @@ func (d *DepositSystem) CreateAccount(acc account.Account) *account.Account {
 	_, ok := d.AccountMap[acc.AccountId]
 	if ok {
 		fmt.Println("same account")
-
 	}
 	newAccount := account.Account{
 		AccountId: acc.AccountId,
