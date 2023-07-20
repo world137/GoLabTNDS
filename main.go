@@ -17,7 +17,8 @@ import (
 func main() {
 	var db storage.StroageProvider
 	var err error
-	typeStorage := "map"
+	// typeStorage := "map"
+	typeStorage := "postgres"
 	switch typeStorage {
 	case "map":
 		db = storage.InitMapStorage()
