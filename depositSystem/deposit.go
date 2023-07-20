@@ -16,7 +16,7 @@ func (d *DepositSystem) CreateAccount(acct account.Account) *account.Account {
 	acctFromRead, err := d.Provider.Read(acct.AccountId)
 	if acctFromRead.AccountId == "" {
 		err := d.Provider.Create(acct)
-		if err == nil {
+		if err != nil {
 			return &account.Account{}
 		}
 	}
