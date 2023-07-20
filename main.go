@@ -15,19 +15,36 @@ import (
 )
 
 func main() {
+	var db storage.StroageProvider
+	var err error
+	typeStorage := "map"
+	switch typeStorage {
+	case "map":
+		db = storage.InitMapStorage()
+	case "postgres":
+		db, err = storage.InitPsqlStorage()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	default:
+		fmt.Println("Invalid storage")
+		return
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	defer http.ListenAndServe(":3000", r) // while loop
 	// storage := make(map[string]account.Account)
-	storage, err := storage.InitPsqlStorage()
+	// storage, err := storage.InitPsqlStorage()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	initStandardRoute(r, storage)
+	initStandardRoute(r, db)
 
 	depositSys := &depositSystem.DepositSystem{
-		Provider: storage,
+		Provider: db,
 	}
 
 	initRoute(r, depositSys)
