@@ -4,66 +4,14 @@ import (
 	"GoLab/account"
 	"GoLab/business"
 	"GoLab/depositSystem"
+	"GoLab/storage"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"sort"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
-
-type StroageProvider interface {
-	Create(account.Account) error
-	Read(string) account.Account
-	ReadAll() []account.Account
-	Update(account.Account) error
-	Delete(account.Account) error
-}
-
-type mapStroage struct {
-	data map[string]account.Account
-}
-
-func (m *mapStroage) Create(account account.Account) error {
-	if account.AccountId == "" {
-		return fmt.Errorf("No account id")
-	}
-	m.data[account.AccountId] = account
-	return nil
-}
-func (m *mapStroage) Read(accountId string) account.Account {
-	if accountId == "" {
-	}
-	return m.data[accountId]
-}
-func (m *mapStroage) ReadAll() []account.Account {
-	var returnArray []account.Account
-	for _, v := range m.data {
-		returnArray = append(returnArray, v)
-	}
-
-	sort.SliceStable(returnArray, func(i, j int) bool {
-		return returnArray[i].AccountId < returnArray[j].AccountId //condition
-	})
-
-	return returnArray
-}
-func (m *mapStroage) Update(account account.Account) error {
-	if account.AccountId == "" {
-		return fmt.Errorf("No account id")
-	}
-	m.data[account.AccountId] = account
-	return nil
-}
-func (m *mapStroage) Delete(account account.Account) error {
-	if account.AccountId == "" {
-		return fmt.Errorf("No account id")
-	}
-	delete(m.data, account.AccountId)
-	return nil
-}
 
 func main() {
 	r := chi.NewRouter()
@@ -90,16 +38,14 @@ func initRoute(r *chi.Mux, depositSys *depositSystem.DepositSystem) {
 	r.Post("/transactions/transfer", business.TransferHandler(depositSys))
 }
 
-func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
+func initStandardRoute(r *chi.Mux, provider storage.StroageProvider) { // storageMap => interface storage
 	// show all accounts
 	r.Get("/accounts", func(w http.ResponseWriter, r *http.Request) {
-		var resArr []account.Account
-
-		for _, val := range storage {
-			resArr = append(resArr, val)
+		arr, err := provider.ReadAll()
+		if err != nil {
+			http.Error(w, err.Error(), 400)
 		}
-
-		res, err := json.Marshal(resArr)
+		res, err := json.Marshal(arr)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 		}
@@ -113,8 +59,8 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 	r.Get("/accounts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		accountId := chi.URLParam(r, "id")
 
-		resBody, ok := storage[accountId]
-		if !ok {
+		resBody, err := provider.Read(accountId)
+		if err != nil {
 			http.Error(w, "account not found", 400)
 			return
 		}
@@ -137,15 +83,31 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 			http.Error(w, err.Error(), 400)
 		}
 
-		account := &account.Account{}
-		err = json.Unmarshal(body, account)
+		account := account.Account{}
+		err = json.Unmarshal(body, &account)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 		}
+		accFromRead, err := provider.Read(accountId)
+		if accFromRead.AccountId == "" {
+			err := provider.Create(account)
+			if err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			} else {
+				err = provider.Update(account)
+				if err != nil {
+					http.Error(w, err.Error(), 400)
+					return
+				}
+			}
+		}
 
-		storage[accountId] = *account
-
-		fmt.Println(storage)
+		err = provider.Update(account)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+		}
+		account.AccountId = accountId
 
 		w.Write([]byte("success"))
 	})
@@ -164,10 +126,26 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 		}
 
 		for _, account := range accounts {
-			storage[account.AccountId] = account
+			// storage[account.AccountId] = account
+			accFromRead, err := provider.Read(account.AccountId)
+			if err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			}
+			if accFromRead.AccountId == "" {
+				err := provider.Create(account)
+				if err != nil {
+					http.Error(w, err.Error(), 400)
+					return
+				} else {
+					err = provider.Update(account)
+					if err != nil {
+						http.Error(w, err.Error(), 400)
+						return
+					}
+				}
+			}
 		}
-
-		fmt.Println(storage)
 
 		w.Write([]byte("success"))
 	})
@@ -175,11 +153,16 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 	// update account by accountId
 	r.Patch("/accounts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		accountId := chi.URLParam(r, "id")
-
-		if _, ok := storage[accountId]; !ok {
-			http.Error(w, "account not found", 400)
+		accFromRead, err := provider.Read(accountId)
+		if accFromRead.AccountId == "" {
+			http.Error(w, err.Error(), 400)
 			return
 		}
+
+		// if _, ok := storage[accountId]; !ok {
+		// 	http.Error(w, "account not found", 400)
+		// 	return
+		// }
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -187,16 +170,21 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 			return
 		}
 
-		account := &account.Account{}
-		err = json.Unmarshal(body, account)
+		account := account.Account{}
+		err = json.Unmarshal(body, &account)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
 
-		storage[accountId] = *account
+		// storage[accountId] = *account
 
-		fmt.Println(storage)
+		// fmt.Println(storage)
+		err = provider.Update(account)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
 
 		w.Write([]byte("success"))
 	})
@@ -205,14 +193,24 @@ func initStandardRoute(r *chi.Mux, storage map[string]account.Account) {
 	r.Delete("/accounts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		accountId := chi.URLParam(r, "id")
 
-		if _, ok := storage[accountId]; !ok {
-			http.Error(w, "account not found", 400)
+		// if _, ok := storage[accountId]; !ok {
+		// 	http.Error(w, "account not found", 400)
+		// 	return
+		// }
+
+		// delete(storage, accountId)
+
+		// fmt.Println(storage)
+		acc, err := provider.Read(accountId)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
 			return
 		}
-
-		delete(storage, accountId)
-
-		fmt.Println(storage)
+		err = provider.Delete(acc)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
 
 		w.Write([]byte("success"))
 	})
