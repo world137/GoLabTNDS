@@ -2,125 +2,90 @@ package depositSystem
 
 import (
 	"GoLab/account"
+	"GoLab/storage"
 	"fmt"
 )
 
+// Packge depositSystem
 type DepositSystem struct {
-	// AccountList []account.Account
-	AccountMap map[string]account.Account
+	Provider storage.StroageProvider
 }
 
-func (d *DepositSystem) Deposit(accountId string, amount int) error { // error is optinal
-	targetAccount := account.Account{}
-	// for i := 0; i < len(d.AccountList); i++ {
-	// 	if d.AccountList[i].Id == accountId {
-	// 		targetAccount = &d.AccountList[i]
-	// 		break
-	// 	}
-	// }
-	// if targetAccount.Id == "" {
-	// 	fmt.Println("Account Not Found")
-	// 	return nil
-	// }
-	_, ok := d.AccountMap[accountId]
-	if !ok {
-		return fmt.Errorf("Account Not Found")
-	} else {
-		targetAccount = d.AccountMap[accountId]
+// AccountID gonna be 001, 002, 003, 004
+func (d *DepositSystem) CreateAccount(acct account.Account) *account.Account {
+	acctFromRead, err := d.Provider.Read(acct.AccountId)
+	if acctFromRead.AccountId == "" {
+		err := d.Provider.Create(acct)
+		if err != nil {
+			return &account.Account{}
+		}
 	}
-	targetAccount.Balance += amount
-	d.AccountMap[accountId] = targetAccount
+	if err != nil {
+		return &account.Account{}
+	}
 
+	return &acct
+}
+
+func (d *DepositSystem) Deposit(accountId string, amount int) error {
+	acct, err := d.Provider.Read(accountId)
+	if err != nil {
+		return err
+	}
+	acct.AddBalance(amount)
+
+	err = d.Provider.Update(acct)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (d *DepositSystem) WithDraw(accountId string, amount int) error {
-	targetAccount := account.Account{}
-	// for i := 0; i < len(d.AccountList); i++ {
-	// 	if d.AccountList[i].Id == accountId {
-	// 		targetAccount = &d.AccountList[i]
-	// 	}
-	// }
-	_, ok := d.AccountMap[accountId]
-	if !ok {
-		return fmt.Errorf("Account Not Found")
-	} else {
-		targetAccount = d.AccountMap[accountId]
+	acct, err := d.Provider.Read(accountId)
+	if err != nil {
+		return err
 	}
-	// if targetAccount.Id == "" {
-	// 	fmt.Println("Account Not Found")
-	// 	return nil
-	// }
-	targetAccount.Balance -= amount
-	d.AccountMap[accountId] = targetAccount
+	acct.ReduceBalance(amount)
 
+	err = d.Provider.Update(acct)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (d *DepositSystem) PrintAllAccountData() map[string]account.Account {
-	// return d.AccountList
-	// returnArray := []account.Account{}
-	// for _, v := range d.AccountMap {
-	// 	returnArray = append(returnArray, v)
-	// }
-	return d.AccountMap
-}
-
-func (d *DepositSystem) Transfer(from, to string, amount int) error {
-	// fromAccount := account.Account{}
-	// toAccount := account.Account{}
-	// for i, v := range d.AccountList {
-	// 	if v.Id == from {
-	// 		fromAccount = &d.AccountList[i]
-	// 	} else if v.Id == to {
-	// 		toAccount = &d.AccountList[i]
-	// 	}
-	// }
-
-	// if toAccount.Id == "" || fromAccount.Id == "" {
-	// 	// err = "Account not found"
-	// 	fmt.Println("Account not found")
-	// 	fmt.Println(toAccount.Id == "")
-	// 	return nil
-	// }
-	// if fromAccount.Balance <= 0 {
-	// 	fmt.Println("Balance < 0")
-	// 	return nil
-	// }
-
-	// fromAccount.Balance -= amount
-	// toAccount.Balance += amount
-
-	_, ok := d.AccountMap[from]
-	if !ok {
-		return fmt.Errorf("account not found")
-	}
-	_, ok2 := d.AccountMap[to]
-	if !ok2 {
-		return fmt.Errorf("account not found")
-	}
-
-	d.WithDraw(from, amount)
-	d.Deposit(to, amount)
 
 	return nil
 }
 
-func (d *DepositSystem) CreateAccount(acc account.Account) *account.Account {
-	// for _, v := range d.AccountList {
-	// 	if v.Id == accountId {
-	// 		panic("Error : Same Id")
-	// 	}
-	// }
-	_, ok := d.AccountMap[acc.AccountId]
-	if ok {
-		fmt.Println("same account")
+func (d *DepositSystem) Transfer(from, to string, amount int) error {
+	acctFrom, err := d.Provider.Read(from)
+	if acctFrom.AccountId == "" {
+		return fmt.Errorf("from account not found")
 	}
-	newAccount := account.Account{
-		AccountId: acc.AccountId,
-		Balance:   0,
+	if err != nil {
+		return err
 	}
-	// d.AccountList = append(d.AccountList, newAccount)
-	d.AccountMap[acc.AccountId] = newAccount
-	return &newAccount
+
+	acctTo, err := d.Provider.Read(from)
+
+	if acctTo.AccountId == "" {
+		return fmt.Errorf("to account not found")
+	}
+	if err != nil {
+		return err
+	}
+
+	/* attention */
+	err = d.WithDraw(from, amount)
+	if err != nil {
+		return err
+	}
+	err = d.Deposit(to, amount)
+	if err != nil {
+		return err
+	}
+	return nil
 }
