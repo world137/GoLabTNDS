@@ -202,11 +202,16 @@ func initStandardRoute(r *chi.Mux, provider storage.StroageProvider) { // storag
 
 		// fmt.Println(storage)
 		acc, err := provider.Read(accountId)
+		if acc.AccountId == "" {
+			http.Error(w, err.Error(), 400)
+			return
+		}
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		err = provider.Delete(acc)
+
+		err = provider.Delete(account.Account{AccountId: accountId})
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
